@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<!--
+(c) 2005-2015 Copyright, Real-Time Innovations.  All rights reserved.
+No duplications, whole or partial, manual or electronic, may be made
+without express written permission.  Any such copies, or revisions thereof,
+must display this notice unaltered.
+This code contains trade secrets of Real-Time Innovations, Inc.
+ -->
+
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.0.0/rti_dds_profiles.xsd"
+     version="6.0.0">
+
+    <!-- Qos Library -->
+    <qos_library name="QosLibrary">
+        <qos_profile name="DefaultProfile"
+                     base_name="BuiltinQosLibExp::Pattern.PeriodicData" is_default_qos="true">
+            <participant_qos>
+                <participant_name>
+                    <name>DSI DDS</name>
+                </participant_name>
+            </participant_qos>
+        </qos_profile>
+    </qos_library>
+
+    <!-- types -->
+    <types>
+        <struct name="HeightStruct" extensibility="extensible">
+            <member name="height" type="float32" key="true"/>
+        </struct>
+
+        <struct name="PitchStruct" extensibility="extensible">
+            <member name="pitch" type="float32" key="true"/>
+        </struct>
+
+        <struct name="RollStruct" extensibility="extensible">
+            <member name="roll" type="float32" key="true"/>
+        </struct>
+
+        <struct name="GpsStruct" extensibility="extensible">
+            <member name="speed" type="float32"/>
+            <member name="latitude" type="float32"/>
+            <member name="longitude" type="float32"/>
+            <member name="altitude" type="float32"/>
+        </struct>
+
+        <struct name="HeightPIDStruct" extensibility="extensible">
+            <member name="height_pid" type="float32" key="true"/>
+        </struct>
+
+        <struct name="PitchPIDStruct" extensibility="extensible">
+            <member name="pitch_pid" type="float32" key="true"/>
+        </struct>
+
+        <struct name="RollPIDStruct" extensibility="extensible">
+            <member name="roll_pid" type="float32" key="true"/>
+        </struct>
+
+        <struct name="posServoStruct" extensibility="extensible">
+            <member name="positionServoCentral" type="long"/>
+            <member name="positionServoLeft" type="long"/>
+            <member name="positionServoRight" type="long"/>
+        </struct>
+	<struct name="RadioStruct" extensibility="extensible">
+	    <member name="motor_Power" type="float32"/>
+	    <member name="motor_direction" type="float32"/>
+	</struct>
+
+	<struct name="ctesHeightStruct" extensibility="extensible">
+	    <member name="cte_PID_Height_prop" type="float32"/>
+	    <member name="cte_PID_Height_der" type="float32"/>
+	    <member name="cte_PID_Height_int" type="float32"/>
+	</struct>
+    <struct name="ctesPitchStruct" extensibility="extensible">
+	    <member name="cte_PID_Pitch_prop" type="float32"/>
+	    <member name="cte_PID_Pitch_der" type="float32"/>
+	    <member name="cte_PID_Pitch_int" type="float32"/>
+	</struct>
+    <struct name="ctesRollStruct" extensibility="extensible">
+	    <member name="cte_PID_Roll_prop" type="float32"/>
+	    <member name="cte_PID_Roll_der" type="float32"/>
+	    <member name="cte_PID_Roll_int" type="float32"/>
+	</struct>
+
+    </types>
+
+    <!-- Domain Library -->
+    <domain_library name="MyDomainLibrary">
+        <domain name="DSI" domain_id="0"> <!-- ONLY ONE DOMAIN OR SEVERAL ONES ????-->
+            <register_type name="HeightStruct" type_ref="HeightStruct" />
+            <register_type name="PitchStruct" type_ref="PitchStruct" />
+            <register_type name="RollStruct" type_ref="RollStruct" />
+            <register_type name="GpsStruct" type_ref="GpsStruct" />
+            <register_type name="HeightPIDStruct" type_ref="HeightPIDStruct" />
+            <register_type name="PitchPIDStruct" type_ref="PitchPIDStruct" />
+            <register_type name="RollPIDStruct" type_ref="RollPIDStruct" />
+            <register_type name="posServoStruct" type_ref="posServoStruct" />
+            <register_type name="RadioStruct" type_ref="RadioStruct" />
+            <register_type name="ctesHeightStruct" type_ref="ctesHeightStruct" />
+            <register_type name="ctesPitchStruct" type_ref="ctesPitchStruct" />
+            <register_type name="ctesRollStruct" type_ref="ctesRollStruct" />
+
+
+            <topic name="Height" register_type_ref="HeightStruct" />
+            <topic name="Pitch" register_type_ref="PitchStruct" />
+            <topic name="Roll" register_type_ref="RollStruct" />
+            <topic name="GPS" register_type_ref="GpsStruct" />
+            <topic name="HeightPID" register_type_ref="HeightPIDStruct" />
+            <topic name="PitchPID" register_type_ref="PitchPIDStruct" />
+            <topic name="RollPID" register_type_ref="RollPIDStruct" />
+            <topic name="posServo" register_type_ref="posServoStruct" />
+            <topic name="Radio" register_type_ref="RadioStruct" />
+            <topic name="ctesHeight" register_type_ref="ctesHeightStruct" />
+            <topic name="ctesPitch" register_type_ref="ctesPitchStruct" />
+            <topic name="ctesRoll" register_type_ref="ctesRollStruct" />
+
+
+        </domain>
+    </domain_library>
+
+    <!-- Participant library -->
+    <domain_participant_library name="MyParticipantLibrary">
+
+        <domain_participant name="CommunicationModule" domain_ref="MyDomainLibrary::DSI">
+            <publisher name="CommunicationModule_Pub">
+                <data_writer name="CommunicationModuleWriterHeight" topic_ref="Height" />
+                <data_writer name="CommunicationModuleWriterPitch" topic_ref="Pitch" />
+                <data_writer name="CommunicationModuleWriterRoll" topic_ref="Roll" />
+                <data_writer name="CommunicationModuleWriterGPS" topic_ref="GPS" />
+            </publisher>
+            <subscriber name="CommunicationModule_Sub">
+                <data_reader name="CommunicationModulerReader" topic_ref="posServo" />
+            </subscriber>
+        </domain_participant>
+
+
+        <domain_participant name="Debug" domain_ref="MyDomainLibrary::DSI">
+            <subscriber name="Debug_Sub">
+                <data_reader name="DebugReaderHeight" topic_ref="Height" />
+                <data_reader name="DebugReaderPitch" topic_ref="Pitch" />
+                <data_reader name="DebugReaderRoll" topic_ref="Roll" />
+                <data_reader name="DebugReaderGPS" topic_ref="GPS" />
+            </subscriber>
+            <publisher name="Debug_Pub">
+                <data_writer name="DebugWriterCtesHeight" topic_ref="ctesHeight" />
+                <data_writer name="DebugWriterCtesPitch" topic_ref="ctesPitch" />
+                <data_writer name="DebugWriterCtesRoll" topic_ref="ctesRoll" />
+            </publisher>
+        </domain_participant>
+
+        <domain_participant name="PID_Height" domain_ref="MyDomainLibrary::DSI">
+            <subscriber name="PID_Height_Sub">
+                <data_reader name="PIDHeightReader" topic_ref="Height" />
+                <data_reader name="PIDHeightReaderCtes" topic_ref="ctesHeight" />
+            </subscriber>
+            <publisher name="PID_Height_Pub">
+                <data_writer name="PIDHeightWriter" topic_ref="HeightPID" />
+            </publisher>
+        </domain_participant>
+
+        <domain_participant name="PID_Pitch" domain_ref="MyDomainLibrary::DSI">
+            <subscriber name="PID_Pitch_Sub">
+                <data_reader name="PIDPitchReader" topic_ref="Pitch" />
+                <data_reader name="PIDPitchReaderCtes" topic_ref="ctesPitch" />
+            </subscriber>
+            <publisher name="PID_Pitch_Pub">
+                <data_writer name="PIDPitchWriter" topic_ref="PitchPID" />
+            </publisher>
+        </domain_participant>
+
+        <domain_participant name="PID_Roll" domain_ref="MyDomainLibrary::DSI">
+            <subscriber name="PID_Roll_Sub">
+                <data_reader name="PIDRollReader" topic_ref="Roll" />
+                <data_reader name="PIDRadioReader" topic_ref="Radio" />
+                <data_reader name="PIDRollReaderCtes" topic_ref="ctesRoll" />
+            </subscriber>
+            <publisher name="PID_Roll_Pub">
+                <data_writer name="PIDRollWriter" topic_ref="RollPID" />
+            </publisher>
+        </domain_participant>
+
+        <domain_participant name="PID_Mixer" domain_ref="MyDomainLibrary::DSI">
+            <subscriber name="PID_Mixer_Sub">
+                <data_reader name="PIDHeightReader" topic_ref="HeightPID" />
+                <data_reader name="PIDPitchReader" topic_ref="PitchPID" />
+                <data_reader name="PIDRollReader" topic_ref="RollPID" />
+            </subscriber>
+            <!-- Publisher to be determined (NEED TO KNOW FORMAT TO SEND TO ARDUINO!!!) -->
+            <publisher name="PID_Mixer_Pub">
+                <data_writer name="PIDMixerWriter" topic_ref="posServo" />
+            </publisher>
+        </domain_participant>
+
+        <domain_participant name="Radio_Participant" domain_ref="MyDomainLibrary::DSI">
+            <publisher name="Radio_Pub">
+                <data_writer name="RadioWriter" topic_ref="Radio" />
+            </publisher>
+	</domain_participant>	
+ 
+
+    </domain_participant_library>
+</dds>

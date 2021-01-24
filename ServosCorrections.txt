@@ -1,0 +1,3 @@
+Position S-Central= 53
+Position S-Left= 64
+Position S-Right= 78

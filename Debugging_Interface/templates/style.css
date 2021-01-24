@@ -1,0 +1,15 @@
+.container {
+    display: block;
+    width: 300px;
+}
+
+.container:before,
+.container:after {
+    display: block;
+    width: 300px;
+    /* IE6&7 */
+}
+
+.container:after {
+    clear: both;
+}

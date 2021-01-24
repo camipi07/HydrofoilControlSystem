@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Solar Boat Monitor</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" rel="stylesheet">
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="//cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/radial/gauge.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="map" style="height: 250px;"></div>
+
+    <div class="container">
+
+        <div class="row">
+            <div class="col">
+                <div class="ctes">
+                    <br>
+                    <br>
+                    <form action="" method="post">
+
+                        <label for="ctePIDheight1">Cte PID height proportional: </label>
+                        <input id="ctePIDheight1" name="ctePIDheight1" step="0.001" type="number" value="{{ctePIDHeightProp}}"><br>
+                        <label for="ctePIDheight2">Cte PID height integral: </label>
+                        <input id="ctePIDheight2" name="ctePIDheight2" step="0.001" type="number" value="{{ctePIDHeightInt}}"><br>
+                        <label for="ctePIDheight3">Cte PID height derivative: </label>
+                        <input id="ctePIDheight3" name="ctePIDheight3" step="0.001" type="number" value="{{ctePIDHeightDer}}"><br>
+                        <br></br>
+                        <label for="ctePIDpitch1">Cte PID pitch proportional: </label>
+                        <input id="ctePIDpitch1" name="ctePIDpitch1" step="0.001" type="number" value="{{ctePIDPitchProp}}"><br>
+                        <label for="ctePIDpitch2">Cte PID pitch integral: </label>
+                        <input id="ctePIDpitch2" name="ctePIDpitch2" step="0.001" type="number" value="{{ctePIDPitchInt}}"><br>
+                        <label for="ctePIDpitch3">Cte PID pitch derivative: </label>
+                        <input id="ctePIDpitch3" name="ctePIDpitch3" step="0.001" type="number" value="{{ctePIDPitchDer}}"><br>
+                        <br></br>
+                        <label for="ctePIDroll1">Cte PID roll proportional: </label>
+                        <input id="ctePIDroll1" name="ctePIDroll1" step="0.001" type="number" value="{{ctePIDRollProp}}"><br>
+                        <label for="ctePIDroll2">Cte PID roll integral: </label>
+                        <input id="ctePIDroll2" name="ctePIDroll2" step="0.001" type="number" value="{{ctePIDRollInt}}"><br>
+                        <label for="ctePIDroll3">Cte PID roll derivative: </label>
+                        <input id="ctePIDroll3" name="ctePIDroll3" step="0.001" type="number" value="{{ctePIDRollDer}}"><br>
+                        <br></br>
+                        <input type="submit" id="submitctes" name="submitctes" value="Registrar valores" style="background-color: #a2ffa5; border: none;
+                        color: rgb(0, 0, 0);font-size: 15px; padding: 20px 20px;position:relative;top:50%;left:25%" />
+                    </form>
+                </div>
+                <br>
+                <br>
+                <br>
+                <div><canvas id="canvas_speed" class="speed_radio"></canvas></div>
+
+            </div>
+
+            <br>
+            <br>
+
+            <div>
+                <canvas id="canvas_height" class="height_chart"></canvas>
+                <canvas id="canvas_pitch" class="pitch_chart"></canvas>
+                <canvas id="canvas_roll" class="roll_chart"></canvas>
+            </div>
+
+
+        </div>
+        <br>
+        <br>
+
+        <div><textarea id='log' rows=10 cols=236 autofocus style="font-size: 15pt;position:relative;top:50%;left:0%;
+            width: 1150px;
+            height: 400px"></textarea></div>
+
+    </div>
+
+
+    <div>
+
+        <script>
+            $(document).ready(function() {
+                let gauge = new RadialGauge({
+                    renderTo: document.getElementById('canvas_speed'),
+                    width: 450,
+                    height: 250,
+                    units: 'km/h',
+                    title: 'speed',
+                    value: 0,
+                    minValue: 0,
+                    maxValue: 100,
+                    majorTicks: [
+                        '0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'
+                    ],
+                    minorTicks: 1,
+                    strokeTicks: false,
+                    highlights: [{
+                        from: 0,
+                        to: 30,
+                        color: '#07ca0083'
+                    }, {
+                        from: 30,
+                        to: 60,
+                        color: '#ffe604e1'
+                    }, {
+                        from: 60,
+                        to: 90,
+                        color: '#ff9b04e1'
+                    }, {
+                        from: 90,
+                        to: 100,
+                        color: '#ff0404c9'
+                    }],
+                    colorPlate: '#ffffff',
+                    colorMajorTicks: '#000000',
+                    colorMinorTicks: '#000000',
+                    colorTitle: '#000000',
+                    colorUnits: '#000000',
+                    colorNumbers: '#000000',
+                    colorNeedleStart: 'rgba(190, 0, 1,1)',
+                    colorNeedleEnd: 'rgba(190, 0, 1,.8)',
+                    valueBox: true,
+                    colorValueBoxBackground: '#ffffff',
+                    colorValueText: '#000000',
+                    animation: true,
+                    animationDuration: 50
+                });
+
+                var latitude = 42.2263946;
+                var long = -8.7345389;
+
+                var map = L.map('map').setView([latitude, long], 11);
+
+                // {s}, {z}, {x} and {y} are placeholders for map tiles
+                // {x} and {y} are the x/y of where you are on the map
+                // {z} is the zoom level
+                // {s} is the subdomain of cartodb
+                var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+                });
+
+                // Now add the layer onto the map
+                map.addLayer(layer);
+
+
+
+
+                // It even opens up a popup when you click it!
+                marker = L.marker([42.2263946, -8.7345389]);
+                map.addLayer(marker);
+                marker.bindPopup("<strong>Our boat</strong>").openPopup();
+
+
+                const source = new EventSource("/chart-data-GPS");
+                var txt = document.getElementById('log');
+
+                source.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    gauge.value = data.speed;
+
+                    var pointPrevious = new L.LatLng(latitude, long);
+                    long = data.longitude;
+                    latitude = data.latitude;
+                    var pointNew = new L.LatLng(latitude, long);
+
+                    var pointList = [pointPrevious, pointNew];
+
+                    var firstpolyline = new L.Polyline(pointList, {
+                        color: 'red',
+                        weight: 3,
+                        opacity: 0.5,
+                        smoothFactor: 1
+                    });
+                    firstpolyline.addTo(map);
+
+                    map.removeLayer(marker);
+
+
+                    // It even opens up a popup when you click it!
+                    marker = new L.marker([latitude, long]);
+                    map.addLayer(marker);
+                    marker.bindPopup("<strong>Our boat</strong>").openPopup();
+
+
+                    txt.value += "\n" + data.time + "-> LAT value: " + data.latitude;
+                    txt.value += "\n" + data.time + "-> LONG value: " + data.longitude;
+                    txt.value += "\n" + data.time + "-> SPEED value: " + data.speed;
+                }
+
+            });
+        </script>
+    </div>
+    <div>
+        <script>
+            $(document).ready(function() {
+                    const config = {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: "Height Plot",
+                                backgroundColor: '#ff0404c9',
+                                borderColor: '#ff0404c9',
+                                data: [],
+                                fill: false,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            title: {
+                                display: true,
+                                text: 'Height Monitor'
+                            },
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time'
+                                    }
+                                }],
+                                yAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Height'
+                                    }
+                                }]
+                            }
+                        }
+                    };
+                    const context = document.getElementById('canvas_height').getContext('2d');
+                    const lineChart = new Chart(context, config);
+                    const source = new EventSource("/chart-data-height");
+                    var txt = document.getElementById('log');
+
+                    source.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        if (config.data.labels.length === 20) {
+                            config.data.labels.shift();
+                            config.data.datasets[0].data.shift();
+                        }
+                        config.data.labels.push(data.time);
+                        config.data.datasets[0].data.push(data.value);
+                        lineChart.update();
+                        txt.value += "\n" + data.time + "-> HEIGHT value: " + data.value;
+                    }
+
+                }
+
+            );
+        </script>
+    </div>
+    <div>
+        <script>
+            $(document).ready(function() {
+                    const config = {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: "Pitch Plot",
+                                backgroundColor: '#07ca0083',
+                                borderColor: '#07ca0083',
+                                data: [],
+                                fill: false,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            title: {
+                                display: true,
+                                text: 'Pitch Monitor'
+                            },
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time'
+                                    }
+                                }],
+                                yAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Pitch'
+                                    }
+                                }]
+                            }
+                        }
+                    };
+                    const context = document.getElementById('canvas_pitch').getContext('2d');
+                    const lineChart = new Chart(context, config);
+                    const source = new EventSource("/chart-data-pitch");
+                    var txt = document.getElementById('log');
+
+                    source.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        if (config.data.labels.length === 20) {
+                            config.data.labels.shift();
+                            config.data.datasets[0].data.shift();
+                        }
+                        config.data.labels.push(data.time);
+                        config.data.datasets[0].data.push(data.value);
+                        lineChart.update();
+                        txt.value += "\n" + data.time + "-> PITCH value: " + data.value;
+                    }
+
+                }
+
+            );
+        </script>
+    </div>
+    <div>
+        <script>
+            $(document).ready(function() {
+                    const config = {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: "Roll Plot",
+                                backgroundColor: '#ffe604e1',
+                                borderColor: '#ffe604e1',
+                                data: [],
+                                fill: false,
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            title: {
+                                display: true,
+                                text: 'Roll Monitor'
+                            },
+                            tooltips: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            hover: {
+                                mode: 'nearest',
+                                intersect: true
+                            },
+                            scales: {
+                                xAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Time'
+                                    }
+                                }],
+                                yAxes: [{
+                                    display: true,
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Roll'
+                                    }
+                                }]
+                            }
+                        }
+                    };
+                    const context = document.getElementById('canvas_roll').getContext('2d');
+                    const lineChart = new Chart(context, config);
+                    const source = new EventSource("/chart-data-roll");
+                    var txt = document.getElementById('log');
+
+                    source.onmessage = function(event) {
+                        const data = JSON.parse(event.data);
+                        if (config.data.labels.length === 20) {
+                            config.data.labels.shift();
+                            config.data.datasets[0].data.shift();
+                        }
+                        config.data.labels.push(data.time);
+                        config.data.datasets[0].data.push(data.value);
+                        lineChart.update();
+                        txt.value += "\n" + data.time + "-> ROLL value: " + data.value;
+                    }
+
+
+
+
+                }
+
+            );
+        </script>
+    </div>
+</body>
+
+</html>
